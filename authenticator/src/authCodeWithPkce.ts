@@ -3,7 +3,7 @@ export async function redirectToAuthCodeFlow(clientId: string) {
     const params = new URLSearchParams();
     params.append("client_id", clientId);
     params.append("response_type", "code");
-    params.append("redirect_uri", "https://prapraveen.github.io/RichLyrics/callback");
+    params.append("redirect_uri", "https://rich-lyrics.vercel.app/callback");
     params.append("scope", "user-read-playback-state");
 
     document.location = `https://accounts.spotify.com/authorize?${params.toString()}`;
@@ -16,7 +16,7 @@ export async function getAccessToken(clientId: string, code: string) {
     params.append("client_id", clientId);
     params.append("grant_type", "authorization_code");
     params.append("code", code);
-    params.append("redirect_uri", "https://prapraveen.github.io/RichLyrics/callback");
+    params.append("redirect_uri", "https://rich-lyrics.vercel.app/callback");
     params.append("code_verifier", verifier!);
 
     const result = await fetch("https://accounts.spotify.com/api/token", {
