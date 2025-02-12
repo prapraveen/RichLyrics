@@ -40,4 +40,4 @@ Temporary Items
 
 test.py
 test2.py
-.pycache
+__pycache__/
