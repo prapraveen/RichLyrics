@@ -41,3 +41,4 @@ Temporary Items
 test.py
 test2.py
 __pycache__/
+venv/
