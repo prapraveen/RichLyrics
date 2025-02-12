@@ -1,23 +1,20 @@
-import time
+import requests
+import base64
 import os
 from dotenv import load_dotenv
-import requests
-from discordrp import Presence
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from pprint import pprint
-from syrics.api import Spotify
-
-
+from fastapi.responses import JSONResponse
+import time
 
 load_dotenv()
-discord_client_id = "1339009630734651461"
-SP_DC = os.environ.get("SP_DC")
-print(discord_client_id)
 
-sp = Spotify(SP_DC)
+spotify_client_id = os.getenv("SPOTIFY_CLIENT_ID")
+spotify_client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
+print(spotify_client_id)
 
 app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,85 +22,43 @@ app.add_middleware(
     allow_methods=["*"]
 )
 
-bearer_token = None
-
-with open("accessToken.txt", "r") as file:
-    content = file.read()
-    bearer_token = content.strip()
-
+@app.get("/get-access-token")
+def get_access_token(code: str):
+    body = {
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": "http://localhost:5173/callback"
+    }
+    auth_header = base64.urlsafe_b64encode((spotify_client_id + ":" + spotify_client_secret).encode())
+    headers = {
+        "content-type": "application/x-www-form-urlencoded",
+        "Authorization": 'Basic %s' % auth_header.decode('ascii')
+    }
+    res = requests.post("https://accounts.spotify.com/api/token", headers=headers, data=body).json()
+    if "error" in res:
+        return JSONResponse(status_code=400, content=res)
     
+    res["expires_at"] = int(time.time() * 1000) + res["expires_in"] * 1000
+    return res
 
-@app.post("/send_token/{token}")
-def receive_token(token: str):
-    global bearer_token
-    bearer_token = token
-    prev_song_id = None
-    lyrics = None
-    with Presence(discord_client_id) as presence:
-        while True:
-            try:
-                res = requests.get("https://api.spotify.com/v1/me/player", headers={"Authorization": "Bearer " + bearer_token})
-            except:
-                time.sleep(2)
-                continue
-            if res.status_code != 200:
-                print("not playing any song")
-                time.sleep(1)
-                continue
-            data = res.json()
-            song_id = data["item"]["id"]
-            track_name = data["item"]["name"]
-            artist_name = data["item"]["artists"][0]["name"]
-            album_cover = data["item"]["album"]["images"][0]["url"]
-            progress_ms = data["progress_ms"]
-            duration_ms = data["item"]["duration_ms"]
-            if song_id != prev_song_id or not lyrics:
-                lyrics = sp.get_lyrics(song_id)
-                if not lyrics:
-                    print("error getting song lyrics")
-                    lyrics = None
-                    time.sleep(5)
-                    continue
-                lyrics = lyrics["lyrics"]["lines"]
-            
-            idx = 0
-            while progress_ms > int(lyrics[idx]["startTimeMs"]):
-                idx += 1
-                if idx == len(lyrics):
-                    break
-            idx -= 1
-            if idx < 0:
-                lyric = ""
-            else:
-                lyric = lyrics[idx]["words"]
-            presence.set(
-                {
-                    "name": "listening to spotify",
-                    "type": 2,
-                    "assets": {"small_image": album_cover, 
-                            "large_text": artist_name},
-                    "details": lyric if len(lyric) >= 3 else "♪♪♪",
-                    "state": track_name,
-                    "timestamps": {"start": int(time.time()) + progress_ms // 1000, "end": int(time.time()) + duration_ms // 1000}
-                }
-            )
-            prev_song_id = song_id
+@app.get("/refresh-token")
+def refresh_token(refresh_token: str):
+    client_creds = f"{spotify_client_id}:{spotify_client_secret}"
+    client_creds_b64 = base64.b64encode(client_creds.encode()).decode()
 
+    headers = {
+        "Authorization": f"Basic {client_creds_b64}"
+    }
 
-            time.sleep(2)
+    data = {
+        "grant_type": "refresh_token",
+        "refresh_token": refresh_token
+    }
 
-"""
-with Presence(discord_client_id) as presence:
-    print("Connected")
-    presence.set(
-        {
-            "state": "In Game",
-            "details": "Summoner's Rift",
-            "timestamps": {"start": int(time.time())},
-        }
-    )
-    print("Presence updated")
-
-    while True:
-        time.sleep(15)
-"""
+    res = requests.post("https://accounts.spotify.com/api/token", data=data, headers=headers)
+    if res.status_code == 200:
+        data = res.json()
+        data["expires_at"] = int(time.time() * 1000) + data["expires_in"] * 1000
+        return data
+    else:
+        return JSONResponse(status_code=400, content=res.json())
