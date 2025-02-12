@@ -21,7 +21,7 @@ function App() {
 
     
   return <>
-    <h1>Your Spotify Code:</h1>
+    <h1>Your Spotify Code test:</h1>
     <h2>{access_code}</h2>
     </>
 }
