@@ -11,7 +11,6 @@ load_dotenv()
 
 spotify_client_id = os.getenv("SPOTIFY_CLIENT_ID")
 spotify_client_secret = os.getenv("SPOTIFY_CLIENT_SECRET")
-print(spotify_client_id)
 
 app = FastAPI()
 
@@ -27,7 +26,7 @@ def get_access_token(code: str):
     body = {
         "grant_type": "authorization_code",
         "code": code,
-        "redirect_uri": "http://localhost:5173/callback"
+        "redirect_uri": "https://rich-lyrics.vercel.app/callback"
     }
     auth_header = base64.urlsafe_b64encode((spotify_client_id + ":" + spotify_client_secret).encode())
     headers = {

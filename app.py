@@ -3,7 +3,6 @@ import os
 from dotenv import load_dotenv
 import requests
 from discordrp import Presence
-from pprint import pprint
 from syrics.api import Spotify
 import sys
 
@@ -51,7 +50,7 @@ with Presence(discord_client_id) as presence:
             continue
         if res.status_code != 200:
             print("not playing any song")
-            time.sleep(1)
+            time.sleep(5)
             continue
         data = res.json()
         song_id = data["item"]["id"]
