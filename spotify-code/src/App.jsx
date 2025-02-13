@@ -21,7 +21,7 @@ function App() {
 
     
   return <>
-    <h1>Your Spotify Code test:</h1>
+    <h1>Your Spotify Code:</h1>
     <h2>{access_code}</h2>
     </>
 }
@@ -34,7 +34,7 @@ async function redirectToAuthCodeFlow(clientId) {
   const params = new URLSearchParams();
   params.append("client_id", clientId);
   params.append("response_type", "code");
-  params.append("redirect_uri", "https://rich-lyrics.vercel.app/");
+  params.append("redirect_uri", "https://rich-lyrics.netlify.app/");
   params.append("scope", "user-read-playback-state");
 
   document.location = `https://accounts.spotify.com/authorize?${params.toString()}`;
