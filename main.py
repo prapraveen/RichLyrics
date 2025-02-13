@@ -26,7 +26,7 @@ def get_access_token(code: str):
     body = {
         "grant_type": "authorization_code",
         "code": code,
-        "redirect_uri": "https://rich-lyrics.vercel.app/callback"
+        "redirect_uri": "https://rich-lyrics.netlify.app/"
     }
     auth_header = base64.urlsafe_b64encode((spotify_client_id + ":" + spotify_client_secret).encode())
     headers = {

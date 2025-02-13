@@ -17,9 +17,10 @@ sp = Spotify(SP_DC)
 
 access_code = input("Enter in your Spotify Access Code: ")
 print("Setting Rich Presence!")
-bearer_token_req = requests.get(f"http://127.0.0.1:8000/get-access-token?code={access_code}")
+bearer_token_req = requests.get(f"https://rich-lyrics-api-4f1a2a064d31.herokuapp.com/get-access-token?code={access_code}")
 if not bearer_token_req:
     print("Authentication did not work. Please try again.")
+    print(bearer_token_req)
     print(bearer_token_req.json())
     sys.exit(1)
 
@@ -29,7 +30,7 @@ expiration_time = bearer_token_req.json()["expires_at"]
 
 def get_new_token():
     global access_token, refresh_token, expiration_time
-    res = requests.get(f"http://127.0.0.1:8000/refresh-token?refresh_token={refresh_token}")
+    res = requests.get(f"https://rich-lyrics-api-4f1a2a064d31.herokuapp.com/refresh-token?refresh_token={refresh_token}")
     if not res:
         print("Error refreshing token.")
         sys.exit(1)
