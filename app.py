@@ -11,7 +11,6 @@ import sys
 load_dotenv()
 discord_client_id = "1339009630734651461"
 SP_DC = os.environ.get("SP_DC")
-print(discord_client_id)
 
 sp = Spotify(SP_DC)
 
@@ -39,6 +38,7 @@ def get_new_token():
 
 prev_song_id = None
 lyrics = None
+ends_at = None
 
 with Presence(discord_client_id) as presence:
     while True:
@@ -61,6 +61,7 @@ with Presence(discord_client_id) as presence:
         progress_ms = data["progress_ms"]
         duration_ms = data["item"]["duration_ms"]
         if song_id != prev_song_id or not lyrics:
+            ends_at = time.time() * 1000 + duration_ms
             lyrics = sp.get_lyrics(song_id)
             if not lyrics:
                 print("error getting song lyrics")
